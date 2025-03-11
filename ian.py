@@ -12,12 +12,12 @@ import sys
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 def standardize_column_names(df):
-    #Standardize column names: lowercase, remove spaces, use underscores, and remove non-word characters.
+    # Standardize column names: lowercase, remove spaces, use underscores, and remove non-word characters.
     df.columns = df.columns.str.strip().str.lower().str.replace(' ', '_').str.replace(r'\W', '', regex=True)
     return df
 
 def clean_text(text):
-    #Clean a block of text by removing references, HTML, extra spaces, and splitting concatenated words.
+    # Clean a block of text by removing references, HTML, extra spaces, and splitting concatenated words.
     if not isinstance(text, str):
         return text
     # Remove bracketed numbers (e.g., [1])
@@ -63,6 +63,13 @@ def clean_dataset(file_path, key_columns, date_columns, output_file, missing_thr
         if cols_to_drop:
             df.drop(columns=cols_to_drop, inplace=True)
             logging.info(f"Dropped columns with > {missing_threshold*100}% missing values: {cols_to_drop}")
+
+        # If both 'url' and 'links' columns exist, drop the 'links' column.
+        if "url" in df.columns and "links" in df.columns:
+            df.drop(columns="links", inplace=True)
+            logging.info("Dropped 'links' column because both 'url' and 'links' are present in the dataset.")
+            # Also update key_columns to remove 'links'
+            key_columns = [col for col in key_columns if col != "links"]
 
         # Drop rows with missing values in key columns.
         initial_rows = df.shape[0]
